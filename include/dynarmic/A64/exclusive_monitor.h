@@ -6,14 +6,17 @@
 #pragma once
 
 #include <atomic>
+#include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
 namespace Dynarmic {
 namespace A64 {
 
 using VAddr = std::uint64_t;
+using Vector = std::array<std::uint64_t, 2>;
 
 class ExclusiveMonitor {
 public:
@@ -26,19 +29,35 @@ public:
 
     /// Marks a region containing [address, address+size) to be exclusive to
     /// processor processor_id.
-    void Mark(size_t processor_id, VAddr address, size_t size);
+    template <typename T, typename Function>
+    void Mark(size_t processor_id, VAddr address, size_t size, Function op) {
+        PreMark(size);
+        const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
+
+        Lock();
+        exclusive_addresses[processor_id] = masked_address;
+        T value = op();
+        std::memcpy(exclusive_values[processor_id].data(), &value, sizeof(T));
+        Unlock();
+    }
 
     /// Checks to see if processor processor_id has exclusive access to the
     /// specified region. If it does, executes the operation then clears
     /// the exclusive state for processors if their exclusive region(s)
     /// contain [address, address+size).
-    template <typename Function>
+    template <typename T, typename Function>
     bool DoExclusiveOperation(size_t processor_id, VAddr address, size_t size, Function op) {
         if (!CheckAndClear(processor_id, address, size)) {
             return false;
         }
 
-        op();
+        T saved_value;
+        std::memcpy(&saved_value, exclusive_values[processor_id].data(), sizeof(T));
+
+        if (!op(saved_value)) {
+            Unlock();
+            return false;
+        }
 
         Unlock();
         return true;
@@ -51,6 +70,7 @@ public:
 
 private:
     bool CheckAndClear(size_t processor_id, VAddr address, size_t size);
+    void PreMark(size_t size);
 
     void Lock();
     void Unlock();
@@ -59,6 +79,7 @@ private:
     static constexpr VAddr INVALID_EXCLUSIVE_ADDRESS = 0xDEAD'DEAD'DEAD'DEADull;
     std::atomic_flag is_locked;
     std::vector<VAddr> exclusive_addresses;
+    std::vector<Vector> exclusive_values;
 };
 
 } // namespace A64
