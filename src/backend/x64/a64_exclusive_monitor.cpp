@@ -11,7 +11,8 @@
 namespace Dynarmic {
 namespace A64 {
 
-ExclusiveMonitor::ExclusiveMonitor(size_t processor_count) : exclusive_addresses(processor_count, INVALID_EXCLUSIVE_ADDRESS) {
+ExclusiveMonitor::ExclusiveMonitor(size_t processor_count) :
+    exclusive_addresses(processor_count, INVALID_EXCLUSIVE_ADDRESS), exclusive_values(processor_count) {
     Unlock();
 }
 
@@ -19,13 +20,8 @@ size_t ExclusiveMonitor::GetProcessorCount() const {
     return exclusive_addresses.size();
 }
 
-void ExclusiveMonitor::Mark(size_t processor_id, VAddr address, size_t size) {
+void ExclusiveMonitor::PreMark(size_t size) {
     ASSERT(size <= 16);
-    const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
-
-    Lock();
-    exclusive_addresses[processor_id] = masked_address;
-    Unlock();
 }
 
 void ExclusiveMonitor::Lock() {
