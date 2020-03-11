@@ -47,8 +47,12 @@ public:
 
     void InvalidateCacheRanges(const boost::icl::interval_set<u64>& ranges);
 
+    void ChangeProcessorId(size_t value) {
+        conf.processor_id = value;
+    }
+
 protected:
-    const A64::UserConfig conf;
+    A64::UserConfig conf;
     A64::Jit* jit_interface;
     BlockRangeInformation<u64> block_ranges;
 

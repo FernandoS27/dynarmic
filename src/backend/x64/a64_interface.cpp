@@ -187,6 +187,7 @@ public:
 
     void ChangeProcessorId(size_t value) {
         conf.processor_id = value;
+        emitter.ChangeProcessorId(value);
     }
 
     void ClearExclusiveState() {
