@@ -30,8 +30,7 @@ public:
     /// Marks a region containing [address, address+size) to be exclusive to
     /// processor processor_id.
     template <typename T, typename Function>
-    void Mark(size_t processor_id, VAddr address, size_t size, Function op) {
-        PreMark(size);
+    T ReadAndMark(size_t processor_id, VAddr address, Function op) {
         const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
 
         Lock();
@@ -39,6 +38,7 @@ public:
         T value = op();
         std::memcpy(exclusive_values[processor_id].data(), &value, sizeof(T));
         Unlock();
+        return value;
     }
 
     /// Checks to see if processor processor_id has exclusive access to the
