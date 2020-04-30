@@ -107,9 +107,7 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) {
 
     reg_alloc.AssertNoMoreUses();
 
-    if (conf.enable_ticks) {
-        EmitAddCycles(block.CycleCount());
-    }
+    EmitAddCycles(block.CycleCount());
     EmitX64::EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
@@ -1228,11 +1226,7 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
         return;
     }
 
-    if (conf.enable_ticks) {
-        code.cmp(qword[r15 + offsetof(A64JitState, cycles_remaining)], 0);
-    } else {
-        code.cmp(code.byte[r15 + offsetof(A64JitState, halt_requested)], 0);
-    }
+    code.cmp(qword[r15 + offsetof(A64JitState, cycles_remaining)], 0);
 
     patch_information[terminal.next].jg.emplace_back(code.getCurr());
     if (auto next_bb = GetBasicBlock(terminal.next)) {

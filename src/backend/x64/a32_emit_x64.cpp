@@ -137,9 +137,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     reg_alloc.AssertNoMoreUses();
 
-    if (config.enable_ticks) {
-        EmitAddCycles(block.CycleCount());
-    }
+    EmitAddCycles(block.CycleCount());
     EmitX64::EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
@@ -174,9 +172,7 @@ void A32EmitX64::EmitCondPrelude(const A32EmitContext& ctx) {
     ASSERT(ctx.block.HasConditionFailedLocation());
 
     Xbyak::Label pass = EmitCond(ctx.block.GetCondition());
-    if (config.enable_ticks) {
-        EmitAddCycles(ctx.block.ConditionFailedCycleCount());
-    }
+    EmitAddCycles(ctx.block.ConditionFailedCycleCount());
     EmitTerminal(IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.L(pass);
 }
@@ -1472,11 +1468,7 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
         return;
     }
 
-    if (config.enable_ticks) {
-        code.cmp(qword[r15 + offsetof(A32JitState, cycles_remaining)], 0);
-    } else {
-        code.cmp(code.byte[r15 + offsetof(A32JitState, halt_requested)], 0);
-    }
+    code.cmp(qword[r15 + offsetof(A32JitState, cycles_remaining)], 0);
 
     patch_information[terminal.next].jg.emplace_back(code.getCurr());
     if (const auto next_bb = GetBasicBlock(terminal.next)) {
