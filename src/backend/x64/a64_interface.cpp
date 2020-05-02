@@ -45,6 +45,7 @@ public:
         , emitter(block_of_code, conf, jit)
     {
         ASSERT(conf.page_table_address_space_bits >= 12 && conf.page_table_address_space_bits <= 64);
+        ASSERT(conf.global_monitor != nullptr);
     }
 
     ~Impl() = default;
@@ -194,9 +195,9 @@ public:
         jit_state.SetPstate(value);
     }
 
-    void ChangeProcessorId(size_t value) {
+    void ChangeProcessorID(size_t value) {
         conf.processor_id = value;
-        emitter.ChangeProcessorId(value);
+        emitter.ChangeProcessorID(value);
     }
 
     void ClearExclusiveState() {
@@ -398,8 +399,8 @@ void Jit::SetPstate(u32 value) {
     impl->SetPstate(value);
 }
 
-void Jit::ChangeProcessorId(size_t new_processor) {
-    impl->ChangeProcessorId(new_processor);
+void Jit::ChangeProcessorID(size_t new_processor) {
+    impl->ChangeProcessorID(new_processor);
 }
 
 void Jit::ClearExclusiveState() {

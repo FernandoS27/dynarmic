@@ -84,23 +84,23 @@ public:
         MemoryWrite64(vaddr + 8, value[1]);
     }
 
-    bool MemoryWriteExclusive8(u64 vaddr, std::uint8_t value, std::uint8_t [[maybe_unused]] expected) override {
+    bool MemoryWriteExclusive8(u64 vaddr, std::uint8_t value, std::uint8_t expected) override {
         MemoryWrite8(vaddr, value);
         return true;
     }
-    bool MemoryWriteExclusive16(u64 vaddr, std::uint16_t value, std::uint16_t [[maybe_unused]] expected) override {
+    bool MemoryWriteExclusive16(u64 vaddr, std::uint16_t value, std::uint16_t expected) override {
         MemoryWrite16(vaddr, value);
         return true;
     }
-    bool MemoryWriteExclusive32(u64 vaddr, std::uint32_t value, std::uint32_t [[maybe_unused]] expected) override {
+    bool MemoryWriteExclusive32(u64 vaddr, std::uint32_t value, std::uint32_t expected) override {
         MemoryWrite32(vaddr, value);
         return true;
     }
-    bool MemoryWriteExclusive64(u64 vaddr, std::uint64_t value, std::uint64_t [[maybe_unused]] expected) override {
+    bool MemoryWriteExclusive64(u64 vaddr, std::uint64_t value, std::uint64_t expected) override {
         MemoryWrite64(vaddr, value);
         return true;
     }
-    bool MemoryWriteExclusive128(u64 vaddr, Vector value, Vector [[maybe_unused]] expected) override {
+    bool MemoryWriteExclusive128(u64 vaddr, Vector value, Vector expected) override {
         MemoryWrite128(vaddr, value);
         return true;
     }

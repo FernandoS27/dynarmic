@@ -930,142 +930,81 @@ void A64EmitX64::EmitA64ReadMemory128(A64EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A64EmitX64::EmitA64ExclusiveReadMemory8(A64EmitContext& ctx, IR::Inst* inst) {
-    if (conf.global_monitor) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        ctx.reg_alloc.HostCall(inst, {}, args[0]);
-        code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-        code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
-        code.CallFunction(static_cast<u8(*)(A64::UserConfig&, u64)>(
-            [](A64::UserConfig& conf, u64 vaddr) -> u8 {
-                return conf.global_monitor->ReadAndMark<u8>(conf.processor_id, vaddr, [&]() -> u8 {
-                    return conf.callbacks->MemoryRead8(vaddr);
-                });
-            }
-        ));
-        return;
-    }
-
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, {}, args[0]);
-    const Xbyak::Reg64 address = ctx.reg_alloc.UseGpr(args[0]);
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_address)], address);
-    Devirtualize<&A64::UserCallbacks::MemoryRead8>(conf.callbacks).EmitCall(code);
-    code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_mem_0)], code.ABI_RETURN.cvt8());
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_mem_1)], u64(0));
+    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    code.CallLambda(
+        [](A64::UserConfig& conf, u64 vaddr) -> u8 {
+            return conf.global_monitor->ReadAndMark<u8>(conf.processor_id, vaddr, [&]() -> u8 {
+                return conf.callbacks->MemoryRead8(vaddr);
+            });
+        }
+    );
 }
 
 void A64EmitX64::EmitA64ExclusiveReadMemory16(A64EmitContext& ctx, IR::Inst* inst) {
-    if (conf.global_monitor) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        ctx.reg_alloc.HostCall(inst, {}, args[0]);
-        code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-        code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
-        code.CallFunction(static_cast<u16(*)(A64::UserConfig&, u64)>(
-            [](A64::UserConfig& conf, u64 vaddr) -> u16 {
-                return conf.global_monitor->ReadAndMark<u16>(conf.processor_id, vaddr, [&]() -> u16 {
-                    return conf.callbacks->MemoryRead16(vaddr);
-                });
-            }
-        ));
-        return;
-    }
-
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, {}, args[0]);
-    const Xbyak::Reg64 address = ctx.reg_alloc.UseGpr(args[0]);
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_address)], address);
-    Devirtualize<&A64::UserCallbacks::MemoryRead16>(conf.callbacks).EmitCall(code);
-    code.mov(word[r15 + offsetof(A64JitState, exclusive_mem_0)], code.ABI_RETURN.cvt16());
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_mem_1)], u64(0));
+    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    code.CallLambda(
+        [](A64::UserConfig& conf, u64 vaddr) -> u16 {
+            return conf.global_monitor->ReadAndMark<u16>(conf.processor_id, vaddr, [&]() -> u16 {
+                return conf.callbacks->MemoryRead16(vaddr);
+            });
+        }
+    );
 }
 
 void A64EmitX64::EmitA64ExclusiveReadMemory32(A64EmitContext& ctx, IR::Inst* inst) {
-    if (conf.global_monitor) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        ctx.reg_alloc.HostCall(inst, {}, args[0]);
-        code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-        code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
-        code.CallFunction(static_cast<u32(*)(A64::UserConfig&, u64)>(
-            [](A64::UserConfig& conf, u64 vaddr) -> u32 {
-                return conf.global_monitor->ReadAndMark<u32>(conf.processor_id, vaddr, [&]() -> u32 {
-                    return conf.callbacks->MemoryRead32(vaddr);
-                });
-            }
-        ));
-        return;
-    }
-
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, {}, args[0]);
-    const Xbyak::Reg64 address = ctx.reg_alloc.UseGpr(args[0]);
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_address)], address);
-    Devirtualize<&A64::UserCallbacks::MemoryRead32>(conf.callbacks).EmitCall(code);
-    code.mov(dword[r15 + offsetof(A64JitState, exclusive_mem_0)], code.ABI_RETURN.cvt32());
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_mem_1)], u64(0));
+    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    code.CallLambda(
+        [](A64::UserConfig& conf, u64 vaddr) -> u32 {
+            return conf.global_monitor->ReadAndMark<u32>(conf.processor_id, vaddr, [&]() -> u32 {
+                return conf.callbacks->MemoryRead32(vaddr);
+            });
+        }
+    );
 }
 
 void A64EmitX64::EmitA64ExclusiveReadMemory64(A64EmitContext& ctx, IR::Inst* inst) {
-    if (conf.global_monitor) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        ctx.reg_alloc.HostCall(inst, {}, args[0]);
-        code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-        code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
-        code.CallFunction(static_cast<u64(*)(A64::UserConfig&, u64)>(
-            [](A64::UserConfig& conf, u64 vaddr) -> u64 {
-                return conf.global_monitor->ReadAndMark<u64>(conf.processor_id, vaddr, [&]() -> u64 {
-                    return conf.callbacks->MemoryRead64(vaddr);
-                });
-            }
-        ));
-        return;
-    }
-
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, {}, args[0]);
-    const Xbyak::Reg64 address = ctx.reg_alloc.UseGpr(args[0]);
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_address)], address);
-    Devirtualize<&A64::UserCallbacks::MemoryRead64>(conf.callbacks).EmitCall(code);
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_mem_0)], code.ABI_RETURN);
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_mem_1)], u64(0));
+    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    code.CallLambda(
+        [](A64::UserConfig& conf, u64 vaddr) -> u64 {
+            return conf.global_monitor->ReadAndMark<u64>(conf.processor_id, vaddr, [&]() -> u64 {
+                return conf.callbacks->MemoryRead64(vaddr);
+            });
+        }
+    );
 }
 
 void A64EmitX64::EmitA64ExclusiveReadMemory128(A64EmitContext& ctx, IR::Inst* inst) {
-    if (conf.global_monitor) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
-        ctx.reg_alloc.EndOfAllocScope();
-        ctx.reg_alloc.HostCall(nullptr, {}, args[0]);
-
-        code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-        code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
-        code.sub(rsp, 16 + ABI_SHADOW_SPACE);
-        code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
-        code.CallFunction(static_cast<void(*)(A64::UserConfig&, u64, A64::Vector&)>(
-            [](A64::UserConfig& conf, u64 vaddr, A64::Vector& ret) {
-                ret = conf.global_monitor->ReadAndMark<A64::Vector>(conf.processor_id, vaddr, [&]() -> A64::Vector {
-                    return conf.callbacks->MemoryRead128(vaddr);
-                });
-            }
-        ));
-        code.movups(result, xword[rsp + ABI_SHADOW_SPACE]);
-        code.add(rsp, 16 + ABI_SHADOW_SPACE);
-        ctx.reg_alloc.DefineValue(inst, result);
-        return;
-    }
-
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    ctx.reg_alloc.EndOfAllocScope();
     ctx.reg_alloc.HostCall(nullptr, {}, args[0]);
-    const Xbyak::Reg64 address = ctx.reg_alloc.UseGpr(args[0]);
+
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(1));
-    code.mov(qword[r15 + offsetof(A64JitState, exclusive_address)], address);
-    code.CallFunction(memory_read_128);
-    code.movq(qword[r15 + offsetof(A64JitState, exclusive_mem_0)], xmm1);
-    code.movhpd(qword[r15 + offsetof(A64JitState, exclusive_mem_1)], xmm1);
-    ctx.reg_alloc.DefineValue(inst, xmm1);
+    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    code.sub(rsp, 16 + ABI_SHADOW_SPACE);
+    code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
+    code.CallLambda(
+        [](A64::UserConfig& conf, u64 vaddr, A64::Vector& ret) {
+            ret = conf.global_monitor->ReadAndMark<A64::Vector>(conf.processor_id, vaddr, [&]() -> A64::Vector {
+                return conf.callbacks->MemoryRead128(vaddr);
+            });
+        }
+    );
+    code.movups(result, xword[rsp + ABI_SHADOW_SPACE]);
+    code.add(rsp, 16 + ABI_SHADOW_SPACE);
+    ctx.reg_alloc.DefineValue(inst, result);
 }
 
 void A64EmitX64::EmitA64WriteMemory8(A64EmitContext& ctx, IR::Inst* inst) {
@@ -1141,111 +1080,83 @@ void A64EmitX64::EmitA64WriteMemory128(A64EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A64EmitX64::EmitExclusiveWrite(A64EmitContext& ctx, IR::Inst* inst, size_t bitsize) {
-    if (conf.global_monitor) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
+    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-        if (bitsize != 128) {
-            ctx.reg_alloc.HostCall(inst, {}, args[0], args[1]);
-        } else {
-            ctx.reg_alloc.Use(args[0], ABI_PARAM2);
-            ctx.reg_alloc.Use(args[1], HostLoc::XMM1);
-            ctx.reg_alloc.EndOfAllocScope();
-            ctx.reg_alloc.HostCall(inst);
-        }
-
-        Xbyak::Label end;
-
-        code.mov(code.ABI_RETURN, u32(1));
-        code.cmp(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(0));
-        code.je(end);
-        code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(0));
-        code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
-        switch (bitsize) {
-        case 8:
-            code.CallLambda(
-                [](A64::UserConfig& conf, u64 vaddr, u8 value) -> u32 {
-                    return conf.global_monitor->DoExclusiveOperation<u8>(conf.processor_id, vaddr, 1,
-                        [&](u8 expected) -> bool {
-                            return conf.callbacks->MemoryWriteExclusive8(vaddr, value, expected);
-                    }) ? 0 : 1;
-                }
-            );
-            break;
-        case 16:
-            code.CallLambda(
-                [](A64::UserConfig& conf, u64 vaddr, u16 value) -> u32 {
-                    return conf.global_monitor->DoExclusiveOperation<u16>(conf.processor_id, vaddr, 2,
-                        [&](u16 expected) -> bool {
-                            return conf.callbacks->MemoryWriteExclusive16(vaddr, value, expected);
-                    }) ? 0 : 1;
-                }
-            );
-            break;
-        case 32:
-            code.CallLambda(
-                [](A64::UserConfig& conf, u64 vaddr, u32 value) -> u32 {
-                    return conf.global_monitor->DoExclusiveOperation<u32>(conf.processor_id, vaddr, 4,
-                        [&](u32 expected) -> bool {
-                            return conf.callbacks->MemoryWriteExclusive32(vaddr, value, expected);
-                    }) ? 0 : 1;
-                }
-            );
-            break;
-        case 64:
-            code.CallLambda(
-                [](A64::UserConfig& conf, u64 vaddr, u64 value) -> u32 {
-                    return conf.global_monitor->DoExclusiveOperation<u64>(conf.processor_id, vaddr, 8,
-                        [&](u64 expected) -> bool {
-                            return conf.callbacks->MemoryWriteExclusive64(vaddr, value, expected);
-                    }) ? 0 : 1;
-                }
-            );
-            break;
-        case 128:
-            code.sub(rsp, 16 + ABI_SHADOW_SPACE);
-            code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
-            code.movaps(xword[code.ABI_PARAM3], xmm1);
-            code.CallLambda(
-                [](A64::UserConfig& conf, u64 vaddr, A64::Vector& value) -> u32 {
-                    return conf.global_monitor->DoExclusiveOperation<A64::Vector>(conf.processor_id, vaddr, 16,
-                        [&](A64::Vector expected) -> bool {
-                            return conf.callbacks->MemoryWriteExclusive128(vaddr, value, expected);
-                    }) ? 0 : 1;
-                }
-            );
-            code.add(rsp, 16 + ABI_SHADOW_SPACE);
-            break;
-        default:
-            UNREACHABLE();
-        }
-        code.L(end);
-
-        return;
+    if (bitsize != 128) {
+        ctx.reg_alloc.HostCall(inst, {}, args[0], args[1]);
+    } else {
+        ctx.reg_alloc.Use(args[0], ABI_PARAM2);
+        ctx.reg_alloc.Use(args[1], HostLoc::XMM1);
+        ctx.reg_alloc.EndOfAllocScope();
+        ctx.reg_alloc.HostCall(inst);
     }
 
-    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg64 vaddr = ctx.reg_alloc.UseGpr(args[0]);
-    const int value_idx = bitsize != 128
-                        ? ctx.reg_alloc.UseGpr(args[1]).getIdx()
-                        : ctx.reg_alloc.UseXmm(args[1]).getIdx();
-
     Xbyak::Label end;
-    const Xbyak::Reg32 passed = ctx.reg_alloc.ScratchGpr().cvt32();
-    const Xbyak::Reg64 tmp = ctx.reg_alloc.ScratchGpr();
 
-    code.mov(passed, u32(1));
+    code.mov(code.ABI_RETURN, u32(1));
     code.cmp(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(0));
     code.je(end);
-    code.mov(tmp, vaddr);
-    code.xor_(tmp, qword[r15 + offsetof(A64JitState, exclusive_address)]);
-    code.test(tmp, static_cast<u32>(A64JitState::RESERVATION_GRANULE_MASK & 0xFFFF'FFFF));
-    code.jne(end);
     code.mov(code.byte[r15 + offsetof(A64JitState, exclusive_state)], u8(0));
-    code.call(write_fallbacks[std::make_tuple(bitsize, vaddr.getIdx(), value_idx)]);
-    code.xor_(passed, passed);
+    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    switch (bitsize) {
+    case 8:
+        code.CallLambda(
+            [](A64::UserConfig& conf, u64 vaddr, u8 value) -> u32 {
+                return conf.global_monitor->DoExclusiveOperation<u8>(conf.processor_id, vaddr,
+                    [&](u8 expected) -> bool {
+                        return conf.callbacks->MemoryWriteExclusive8(vaddr, value, expected);
+                }) ? 0 : 1;
+            }
+        );
+        break;
+    case 16:
+        code.CallLambda(
+            [](A64::UserConfig& conf, u64 vaddr, u16 value) -> u32 {
+                return conf.global_monitor->DoExclusiveOperation<u16>(conf.processor_id, vaddr,
+                    [&](u16 expected) -> bool {
+                        return conf.callbacks->MemoryWriteExclusive16(vaddr, value, expected);
+                }) ? 0 : 1;
+            }
+        );
+        break;
+    case 32:
+        code.CallLambda(
+            [](A64::UserConfig& conf, u64 vaddr, u32 value) -> u32 {
+                return conf.global_monitor->DoExclusiveOperation<u32>(conf.processor_id, vaddr,
+                    [&](u32 expected) -> bool {
+                        return conf.callbacks->MemoryWriteExclusive32(vaddr, value, expected);
+                }) ? 0 : 1;
+            }
+        );
+        break;
+    case 64:
+        code.CallLambda(
+            [](A64::UserConfig& conf, u64 vaddr, u64 value) -> u32 {
+                return conf.global_monitor->DoExclusiveOperation<u64>(conf.processor_id, vaddr,
+                    [&](u64 expected) -> bool {
+                        return conf.callbacks->MemoryWriteExclusive64(vaddr, value, expected);
+                }) ? 0 : 1;
+            }
+        );
+        break;
+    case 128:
+        code.sub(rsp, 16 + ABI_SHADOW_SPACE);
+        code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
+        code.movaps(xword[code.ABI_PARAM3], xmm1);
+        code.CallLambda(
+            [](A64::UserConfig& conf, u64 vaddr, A64::Vector& value) -> u32 {
+                return conf.global_monitor->DoExclusiveOperation<A64::Vector>(conf.processor_id, vaddr,
+                    [&](A64::Vector expected) -> bool {
+                        return conf.callbacks->MemoryWriteExclusive128(vaddr, value, expected);
+                }) ? 0 : 1;
+            }
+        );
+        code.add(rsp, 16 + ABI_SHADOW_SPACE);
+        break;
+    default:
+        UNREACHABLE();
+    }
     code.L(end);
-
-    ctx.reg_alloc.DefineValue(inst, passed);
 }
 
 void A64EmitX64::EmitA64ExclusiveWriteMemory8(A64EmitContext& ctx, IR::Inst* inst) {

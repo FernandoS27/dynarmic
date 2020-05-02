@@ -20,10 +20,6 @@ size_t ExclusiveMonitor::GetProcessorCount() const {
     return exclusive_addresses.size();
 }
 
-void ExclusiveMonitor::PreMark(size_t size) {
-    ASSERT(size <= 16);
-}
-
 void ExclusiveMonitor::Lock() {
     while (is_locked.test_and_set(std::memory_order_acquire)) {}
 }
@@ -32,8 +28,7 @@ void ExclusiveMonitor::Unlock() {
     is_locked.clear(std::memory_order_release);
 }
 
-bool ExclusiveMonitor::CheckAndClear(size_t processor_id, VAddr address, size_t size) {
-    ASSERT(size <= 16);
+bool ExclusiveMonitor::CheckAndClear(size_t processor_id, VAddr address) {
     const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
 
     Lock();
@@ -56,7 +51,7 @@ void ExclusiveMonitor::Clear() {
     Unlock();
 }
 
-void ExclusiveMonitor::Clear(size_t processor_id) {
+void ExclusiveMonitor::ClearProcessor(size_t processor_id) {
     Lock();
     exclusive_addresses[processor_id] = INVALID_EXCLUSIVE_ADDRESS;
     Unlock();

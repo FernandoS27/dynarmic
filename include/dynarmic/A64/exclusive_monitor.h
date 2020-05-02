@@ -31,11 +31,12 @@ public:
     /// processor processor_id.
     template <typename T, typename Function>
     T ReadAndMark(size_t processor_id, VAddr address, Function op) {
+        static_assert(std::is_trivially_copyable_v<T>);
         const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
 
         Lock();
         exclusive_addresses[processor_id] = masked_address;
-        T value = op();
+        const T value = op();
         std::memcpy(exclusive_values[processor_id].data(), &value, sizeof(T));
         Unlock();
         return value;
@@ -46,8 +47,9 @@ public:
     /// the exclusive state for processors if their exclusive region(s)
     /// contain [address, address+size).
     template <typename T, typename Function>
-    bool DoExclusiveOperation(size_t processor_id, VAddr address, size_t size, Function op) {
-        if (!CheckAndClear(processor_id, address, size)) {
+    bool DoExclusiveOperation(size_t processor_id, VAddr address, Function op) {
+        static_assert(std::is_trivially_copyable_v<T>);
+        if (!CheckAndClear(processor_id, address)) {
             return false;
         }
 
@@ -66,11 +68,10 @@ public:
     /// Unmark everything.
     void Clear();
     /// Unmark processor id
-    void Clear(size_t processor_id);
+    void ClearProcessor(size_t processor_id);
 
 private:
-    bool CheckAndClear(size_t processor_id, VAddr address, size_t size);
-    void PreMark(size_t size);
+    bool CheckAndClear(size_t processor_id, VAddr address);
 
     void Lock();
     void Unlock();
