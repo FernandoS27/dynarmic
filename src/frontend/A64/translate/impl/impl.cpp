@@ -321,8 +321,7 @@ IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, I
     case 16:
         return ir.ExclusiveReadMemory128(address);
     default:
-        ASSERT_MSG(false, "Invalid bytesize parameter {}", bytesize);
-        return {};
+        ASSERT_FALSE("Invalid bytesize parameter {}", bytesize);
     }
 }
 

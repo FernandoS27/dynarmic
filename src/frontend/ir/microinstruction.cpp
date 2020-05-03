@@ -132,7 +132,7 @@ bool Inst::IsExclusiveMemoryWrite() const {
 }
 
 bool Inst::IsMemoryRead() const {
-    return IsSharedMemoryRead();
+    return IsSharedMemoryRead() || IsExclusiveMemoryRead();
 }
 
 bool Inst::IsMemoryWrite() const {

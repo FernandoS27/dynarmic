@@ -55,14 +55,10 @@ public:
 
         T saved_value;
         std::memcpy(&saved_value, exclusive_values[processor_id].data(), sizeof(T));
-
-        if (!op(saved_value)) {
-            Unlock();
-            return false;
-        }
+        const bool result = op(saved_value);
 
         Unlock();
-        return true;
+        return result;
     }
 
     /// Unmark everything.

@@ -45,7 +45,6 @@ public:
         , emitter(block_of_code, conf, jit)
     {
         ASSERT(conf.page_table_address_space_bits >= 12 && conf.page_table_address_space_bits <= 64);
-        ASSERT(conf.global_monitor != nullptr);
     }
 
     ~Impl() = default;
